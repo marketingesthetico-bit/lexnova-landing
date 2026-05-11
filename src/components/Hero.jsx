@@ -60,7 +60,7 @@ export default function Hero({ onLeadSuccess }) {
       {/* Blob superior — detrás del logo (el pill frosted garantiza
           su legibilidad). Posicionado para NO invadir la zona del H1. */}
       <FloatingBlob
-        className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-36 sm:-top-40 -left-28 sm:-left-32 opacity-[0.14]"
+        className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-24 sm:-top-40 -left-28 sm:-left-32 opacity-[0.14]"
         color="#5BA478"
         delay={0}
         dur={16}
