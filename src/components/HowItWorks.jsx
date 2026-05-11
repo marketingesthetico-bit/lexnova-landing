@@ -105,8 +105,8 @@ export default function HowItWorks() {
             <div className="relative rounded-3xl overflow-hidden shadow-elevated">
               <img
                 src={images.process}
-                alt="Asesor legal explicando el proceso a un cliente"
-                className="w-full h-[520px] object-cover"
+                alt="Especialista de LexNova — tu interlocutor único en el proceso"
+                className="w-full h-[520px] object-cover object-top"
                 loading="lazy"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-navy/85 via-navy/30 to-transparent p-6">

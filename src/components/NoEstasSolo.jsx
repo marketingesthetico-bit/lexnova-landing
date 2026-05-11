@@ -24,21 +24,21 @@ export default function NoEstasSolo() {
               className="absolute bottom-0 right-0 w-32 h-32 rounded-3xl bg-brand/15 -z-10"
             />
 
-            {/* Imagen principal — abrazo / apoyo */}
+            {/* Imagen principal — pareja en consulta con asesor */}
             <div className="absolute top-0 left-0 w-[72%] h-[68%] rounded-2xl overflow-hidden shadow-elevated ring-1 ring-black/5">
               <img
                 src={images.empathyHug}
-                alt="Pareja apoyándose, recibiendo consulta sobre sus deudas"
+                alt="Pareja recibiendo asesoría legal sobre la Ley de Segunda Oportunidad"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
             </div>
 
-            {/* Imagen secundaria — asesoría profesional */}
+            {/* Imagen secundaria — equipo del bufete */}
             <div className="absolute bottom-0 right-0 w-[60%] h-[56%] rounded-2xl overflow-hidden shadow-elevated ring-4 ring-white">
               <img
                 src={images.empathyConsult}
-                alt="Asesoría legal personalizada con cliente"
+                alt="Equipo del bufete LexNova, especialistas en Segunda Oportunidad"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
