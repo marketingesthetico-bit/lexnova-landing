@@ -57,9 +57,10 @@ export default function Hero({ onLeadSuccess }) {
         }}
       />
 
-      {/* Blobs orgánicos flotando — posicionados para no pisar el logo */}
+      {/* Blob superior — detrás del logo (el pill frosted garantiza
+          su legibilidad). Posicionado para NO invadir la zona del H1. */}
       <FloatingBlob
-        className="w-[340px] h-[340px] sm:w-[420px] sm:h-[420px] top-[14%] sm:top-[8%] -left-40 sm:-left-36 opacity-[0.12] sm:opacity-[0.15]"
+        className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-36 sm:-top-40 -left-28 sm:-left-32 opacity-[0.14]"
         color="#5BA478"
         delay={0}
         dur={16}
