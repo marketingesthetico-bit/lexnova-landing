@@ -57,21 +57,21 @@ export default function Hero({ onLeadSuccess }) {
         }}
       />
 
-      {/* Blobs orgánicos flotando */}
+      {/* Blobs orgánicos flotando — posicionados para no pisar el logo */}
       <FloatingBlob
-        className="w-[420px] h-[420px] -top-32 -left-32 opacity-[0.18]"
+        className="w-[340px] h-[340px] sm:w-[420px] sm:h-[420px] top-[14%] sm:top-[8%] -left-40 sm:-left-36 opacity-[0.12] sm:opacity-[0.15]"
         color="#5BA478"
         delay={0}
         dur={16}
       />
       <FloatingBlob
-        className="w-[320px] h-[320px] top-[40%] -right-24 opacity-[0.14]"
+        className="w-[320px] h-[320px] top-[42%] -right-28 opacity-[0.12]"
         color="#5BA478"
         delay={1.5}
         dur={18}
       />
       <FloatingBlob
-        className="w-[200px] h-[200px] bottom-10 left-[40%] opacity-[0.10]"
+        className="w-[200px] h-[200px] bottom-16 left-[40%] opacity-[0.09]"
         color="#3D7A56"
         delay={3}
         dur={20}
@@ -93,14 +93,16 @@ export default function Hero({ onLeadSuccess }) {
       />
 
       <div className="container-narrow relative">
-        {/* Logo */}
+        {/* Logo en pill frosted — siempre legible sobre cualquier fondo */}
         <motion.div
           className="pt-6 sm:pt-8"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
-          <Logo size={44} />
+          <div className="inline-flex items-center bg-white/80 backdrop-blur-md rounded-2xl px-4 py-2 shadow-[0_6px_20px_-8px_rgba(15,36,51,0.12)] border border-white/60">
+            <Logo size={42} />
+          </div>
         </motion.div>
 
         {/* Hero grid */}
