@@ -3,7 +3,10 @@ import LeadForm from "./LeadForm";
 
 export default function SecondCTA({ onLeadSuccess }) {
   return (
-    <section className="bg-navy-gradient noise-bg relative overflow-hidden">
+    <section
+      id="form-cta"
+      className="bg-navy-gradient noise-bg relative overflow-hidden scroll-mt-4"
+    >
       {/* Glow decorativo verde */}
       <div
         aria-hidden="true"
