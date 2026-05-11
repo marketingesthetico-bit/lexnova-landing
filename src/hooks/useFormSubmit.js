@@ -19,8 +19,6 @@ export function useFormSubmit({ onSuccess } = {}) {
       from_name: data.nombre,
       from_phone: data.telefono,
       from_email: data.email,
-      deuda_aproximada: data.deuda,
-      mensaje: data.mensaje || "",
       // Aliases comunes por si el template usa otras variables
       name: data.nombre,
       phone: data.telefono,

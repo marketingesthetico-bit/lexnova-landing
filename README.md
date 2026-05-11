@@ -62,8 +62,6 @@ VITE_GTAG_CONVERSION_ID=AW-XXXXXXXXX/YYYYYYYYYYY
    - `{{from_name}}` — nombre del lead
    - `{{from_phone}}` — teléfono
    - `{{from_email}}` — email
-   - `{{deuda_aproximada}}` — rango de deuda elegido
-   - `{{mensaje}}` — mensaje opcional (vacío por ahora)
 
    Ejemplo de plantilla:
 
@@ -75,8 +73,6 @@ VITE_GTAG_CONVERSION_ID=AW-XXXXXXXXX/YYYYYYYYYYY
    Nombre:     {{from_name}}
    Teléfono:   {{from_phone}}
    Email:      {{from_email}}
-   Deuda:      {{deuda_aproximada}}
-   Mensaje:    {{mensaje}}
    ```
 
    En **To Email** pon `lexnovanewchance@gmail.com`.

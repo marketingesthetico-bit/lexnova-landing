@@ -19,7 +19,6 @@ const schema = z.object({
     .string()
     .min(1, "El email es obligatorio")
     .email("Introduce un email válido"),
-  deuda: z.string().min(1, "Selecciona un rango"),
   rgpd: z.literal(true, {
     errorMap: () => ({ message: "Debes aceptar la política de privacidad" }),
   }),
@@ -37,7 +36,6 @@ export default function LeadForm({ onSuccess, variant = "hero" }) {
       nombre: "",
       telefono: "",
       email: "",
-      deuda: "",
       rgpd: false,
     },
   });
@@ -134,30 +132,6 @@ export default function LeadForm({ onSuccess, variant = "hero" }) {
               <p className="form-error">{errors.email.message}</p>
             )}
           </div>
-        </div>
-
-        <div>
-          <label className="form-label" htmlFor={`deuda-${variant}`}>
-            Deuda aproximada
-          </label>
-          <select
-            id={`deuda-${variant}`}
-            defaultValue=""
-            className="form-select"
-            {...register("deuda")}
-            aria-invalid={!!errors.deuda}
-          >
-            <option value="" disabled>
-              Selecciona un rango…
-            </option>
-            <option value="Menos de 10.000€">Menos de 10.000€</option>
-            <option value="10.000€ - 30.000€">10.000€ - 30.000€</option>
-            <option value="30.000€ - 60.000€">30.000€ - 60.000€</option>
-            <option value="Más de 60.000€">Más de 60.000€</option>
-          </select>
-          {errors.deuda && (
-            <p className="form-error">{errors.deuda.message}</p>
-          )}
         </div>
 
         <label className="flex items-start gap-3 text-muted text-[13px] leading-relaxed cursor-pointer select-none">
