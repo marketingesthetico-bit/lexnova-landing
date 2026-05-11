@@ -12,14 +12,14 @@ const unsplash = (id, w, h) =>
 
 export const images = {
   // NoEstasSolo
-  empathyHug: "/imagenes/asesoria-confianza.png", // pareja + asesor
+  empathyHug: "/imagenes/asesoria-confianza.jpg", // pareja + asesor
   empathyConsult: "/imagenes/equipo-bufete.jpg", // equipo del bufete
 
   // HowItWorks
-  process: "/imagenes/abogado-especialista.png", // un único interlocutor
+  process: "/imagenes/abogado-especialista.jpg", // un único interlocutor
 
   // Reservado por si reintroducimos imagen en Hero más adelante
-  heroCouple: "/imagenes/asesoria-confianza.png",
+  heroCouple: "/imagenes/asesoria-confianza.jpg",
 
   // Testimonios — María G. es del cliente; el resto provisional
   avatar1: unsplash("1544005313-94ddf0286df2", 220, 220), // Lucía P.

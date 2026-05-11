@@ -44,13 +44,13 @@ export default function NoEstasSolo() {
               />
             </div>
 
-            {/* Tarjeta flotante con sello */}
-            <div className="absolute top-[58%] left-[55%] sm:left-[60%] bg-white rounded-xl shadow-card px-4 py-3 flex items-center gap-3">
-              <span className="w-10 h-10 rounded-full bg-brand-soft flex items-center justify-center text-brand-dark text-lg">
+            {/* Sello "Bufete Colegiado" — anclado a la esquina inferior-derecha */}
+            <div className="absolute bottom-3 right-3 bg-white rounded-xl shadow-elevated px-3.5 py-2.5 flex items-center gap-2.5 ring-1 ring-brand/10">
+              <span className="w-9 h-9 rounded-full bg-brand-soft flex items-center justify-center text-brand-dark text-base">
                 ⚖️
               </span>
               <div className="leading-tight">
-                <p className="text-[11px] uppercase tracking-wider text-muted font-semibold">
+                <p className="text-[10px] uppercase tracking-wider text-muted font-semibold">
                   Bufete
                 </p>
                 <p className="text-[13px] text-navy font-semibold">
