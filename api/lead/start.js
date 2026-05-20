@@ -35,23 +35,35 @@ export default async function handler(req, res) {
     await saveLead(leadId, lead);
 
     // Programar flush a los 60 minutos
+    // Programar el flush de 60 min. Si QStash falla (p.ej. PUBLIC_BASE_URL
+    // mal configurada), NO bloqueamos la captura del lead: el lead ya está
+    // guardado, la conversión se disparará y el wizard se abrirá igual.
+    let flushScheduled = false;
     const base = process.env.PUBLIC_BASE_URL;
     if (base && process.env.QSTASH_TOKEN) {
-      const qstash = new Client({ token: process.env.QSTASH_TOKEN });
-      const secret = process.env.FLUSH_SECRET || "";
-      await qstash.publishJSON({
-        url: `${base}/api/lead/flush?token=${encodeURIComponent(secret)}`,
-        body: { leadId },
-        delay: 60 * 60, // segundos
-        retries: 3,
-      });
+      try {
+        const qstash = new Client({ token: process.env.QSTASH_TOKEN });
+        const secret = process.env.FLUSH_SECRET || "";
+        await qstash.publishJSON({
+          url: `${base}/api/lead/flush?token=${encodeURIComponent(secret)}`,
+          body: { leadId },
+          delay: 60 * 60, // segundos
+          retries: 3,
+        });
+        flushScheduled = true;
+      } catch (qErr) {
+        console.error(
+          "QStash no pudo programar el flush de 60 min (revisa PUBLIC_BASE_URL):",
+          qErr?.message || qErr,
+        );
+      }
     } else {
       console.warn(
         "QStash no configurado (falta PUBLIC_BASE_URL o QSTASH_TOKEN): no se programó el flush de 60 min.",
       );
     }
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, flushScheduled });
   } catch (e) {
     console.error("lead/start error:", e);
     return res.status(500).json({ error: "server_error" });
