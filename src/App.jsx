@@ -47,11 +47,11 @@ export default function App() {
     setSuccessOpen(true);
   };
 
-  // 2b) El usuario cierra el wizard sin terminar.
-  //     El backend enviará el lead parcial a los 60 min.
+  // 2b) El usuario confirma que cierra el wizard sin terminar.
+  //     NO mostramos el modal de éxito (no completó). Sus datos de contacto
+  //     ya están guardados y el backend enviará el parcial a los 60 min.
   const handleWizardClose = () => {
     setWizardOpen(false);
-    setSuccessOpen(true);
   };
 
   return (

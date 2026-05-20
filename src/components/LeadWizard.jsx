@@ -61,10 +61,19 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
     comunidad: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
   const progress = ((step + 1) / STEPS.length) * 100;
+
+  // Confirmación antes de cerrar (evita abandono accidental)
+  const requestClose = () => setConfirmClose(true);
+  const handleStay = () => setConfirmClose(false);
+  const handleLeave = () => {
+    setConfirmClose(false);
+    onClose();
+  };
 
   const saveAnswer = (key, value) => {
     setAnswers((a) => ({ ...a, [key]: value }));
@@ -106,7 +115,7 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
         >
           <div
             className="absolute inset-0 bg-navy-dark/80 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={requestClose}
           />
 
           <motion.div
@@ -119,7 +128,7 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
             {/* Cerrar */}
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               aria-label="Cerrar"
               className="absolute top-4 right-4 w-9 h-9 rounded-full hover:bg-gray-100 flex items-center justify-center text-muted transition-colors"
             >
@@ -243,6 +252,60 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
                 🔒 Tus respuestas son confidenciales
               </span>
             </div>
+
+            {/* Confirmación de cierre */}
+            <AnimatePresence>
+              {confirmClose && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 z-10 bg-white/95 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center text-center p-7 sm:p-9"
+                >
+                  <div className="w-14 h-14 rounded-full bg-brand-soft flex items-center justify-center mb-4">
+                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                      <path
+                        d="M13 8v6M13 18h.01"
+                        stroke="#3D7A56"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                      />
+                      <circle
+                        cx="13"
+                        cy="13"
+                        r="11"
+                        stroke="#3D7A56"
+                        strokeWidth="1.6"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="font-display text-2xl text-navy mb-2">
+                    ¿Seguro que quieres salir?
+                  </h4>
+                  <p className="text-muted text-[15px] leading-relaxed mb-6 max-w-xs">
+                    Te faltan solo unas preguntas para completar tu solicitud y
+                    que podamos preparar mejor tu consulta.
+                  </p>
+                  <div className="w-full max-w-xs space-y-2.5">
+                    <button
+                      type="button"
+                      onClick={handleStay}
+                      className="btn-brand"
+                    >
+                      Seguir respondiendo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleLeave}
+                      className="w-full py-3 text-muted text-[15px] font-medium hover:text-navy transition-colors"
+                    >
+                      Salir de todos modos
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
