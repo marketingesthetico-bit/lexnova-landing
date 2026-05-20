@@ -73,7 +73,7 @@ EMAILJS_PRIVATE_KEY=XXXXXXXXXXXXXXXX
 UPSTASH_REDIS_REST_URL=https://xxxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=XXXXXXXXXXXXXXXX
 QSTASH_TOKEN=XXXXXXXXXXXXXXXX
-PUBLIC_BASE_URL=https://segundaoportunidad.lexnovas.es
+PUBLIC_BASE_URL=https://segundaoportunidad.lexnovas.com
 FLUSH_SECRET=cadena-larga-aleatoria
 ```
 
