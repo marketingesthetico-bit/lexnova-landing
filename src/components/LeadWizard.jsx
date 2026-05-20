@@ -42,7 +42,7 @@ const STEPS = [
     titulo: "¿A cuántos acreedores debes dinero?",
     ayuda: "Bancos, financieras, Hacienda, particulares…",
     tipo: "botones",
-    opciones: ["1 - 3", "4 - 7", "8 - 15", "Más de 15"],
+    opciones: ["2 - 3", "4 - 7", "8 - 15", "Más de 15"],
   },
   {
     key: "comunidad",
