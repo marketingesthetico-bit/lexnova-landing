@@ -12,15 +12,52 @@ import FAQ from "./components/FAQ";
 import SecondCTA from "./components/SecondCTA";
 import Footer from "./components/Footer";
 import ConversionModal from "./components/ConversionModal";
+import LeadWizard from "./components/LeadWizard";
 import StickyCTA from "./components/StickyCTA";
+import { newLeadId, startLead } from "./hooks/useLeadFlow";
+import { fireLeadEvent } from "./utils/gtag";
 
 export default function App() {
-  const [modalOpen, setModalOpen] = useState(false);
-  const handleLeadSuccess = () => setModalOpen(true);
+  const [leadId, setLeadId] = useState(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+
+  // 1) El usuario envía el form base (Nombre, Tel, Email)
+  const handleLeadStart = async (baseData) => {
+    const id = newLeadId();
+    try {
+      await startLead({ leadId: id, ...baseData });
+    } catch (e) {
+      // En desarrollo no hay funciones /api: dejamos previsualizar el wizard.
+      if (!import.meta.env.DEV) {
+        console.error("No se pudo iniciar el lead:", e);
+        return { ok: false };
+      }
+      console.warn("API /api no disponible en dev; abriendo wizard en modo preview.", e);
+    }
+
+    setLeadId(id);
+    fireLeadEvent(); // conversión Google Ads en cuanto hay datos de contacto
+    setWizardOpen(true);
+    return { ok: true };
+  };
+
+  // 2a) El usuario completa el wizard
+  const handleWizardComplete = () => {
+    setWizardOpen(false);
+    setSuccessOpen(true);
+  };
+
+  // 2b) El usuario cierra el wizard sin terminar.
+  //     El backend enviará el lead parcial a los 60 min.
+  const handleWizardClose = () => {
+    setWizardOpen(false);
+    setSuccessOpen(true);
+  };
 
   return (
     <div id="top">
-      <Hero onLeadSuccess={handleLeadSuccess} />
+      <Hero onLeadStart={handleLeadStart} />
       <TrustBar />
       <NoEstasSolo />
       <ForYouIf />
@@ -30,9 +67,16 @@ export default function App() {
       <MidwayCTA />
       <Testimonios />
       <FAQ />
-      <SecondCTA onLeadSuccess={handleLeadSuccess} />
+      <SecondCTA onLeadStart={handleLeadStart} />
       <Footer />
-      <ConversionModal open={modalOpen} onClose={() => setModalOpen(false)} />
+
+      <LeadWizard
+        open={wizardOpen}
+        leadId={leadId}
+        onComplete={handleWizardComplete}
+        onClose={handleWizardClose}
+      />
+      <ConversionModal open={successOpen} onClose={() => setSuccessOpen(false)} />
       <StickyCTA />
     </div>
   );

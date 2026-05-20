@@ -40,7 +40,7 @@ function FloatingBlob({ className = "", color = "#5BA478", delay = 0, dur = 14 }
   );
 }
 
-export default function Hero({ onLeadSuccess }) {
+export default function Hero({ onLeadStart }) {
   return (
     <header className="relative bg-white overflow-hidden">
       {/* Mesh gradient de fondo */}
@@ -179,7 +179,7 @@ export default function Hero({ onLeadSuccess }) {
 
           {/* Formulario */}
           <div className="lg:pl-4">
-            <LeadForm variant="hero" onSuccess={onLeadSuccess} />
+            <LeadForm variant="hero" onLeadStart={onLeadStart} />
           </div>
         </div>
       </div>

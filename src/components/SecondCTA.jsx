@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import LeadForm from "./LeadForm";
 
-export default function SecondCTA({ onLeadSuccess }) {
+export default function SecondCTA({ onLeadStart }) {
   return (
     <section
       id="form-cta"
@@ -82,7 +82,7 @@ export default function SecondCTA({ onLeadSuccess }) {
           </motion.div>
 
           <div>
-            <LeadForm variant="cta" onSuccess={onLeadSuccess} />
+            <LeadForm variant="cta" onLeadStart={onLeadStart} />
           </div>
         </div>
       </div>

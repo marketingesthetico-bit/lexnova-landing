@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { useFormSubmit } from "../hooks/useFormSubmit";
+import { useState } from "react";
 
 const phoneRegex = /^(\+?34[\s-]?)?[6789]\d{2}[\s-]?\d{3}[\s-]?\d{3}$/;
 
@@ -24,7 +24,7 @@ const schema = z.object({
   }),
 });
 
-export default function LeadForm({ onSuccess, variant = "hero" }) {
+export default function LeadForm({ onLeadStart, variant = "hero" }) {
   const {
     register,
     handleSubmit,
@@ -40,14 +40,26 @@ export default function LeadForm({ onSuccess, variant = "hero" }) {
     },
   });
 
-  const { submit, isLoading, isError, errorMessage } = useFormSubmit({
-    onSuccess: () => {
-      reset();
-      if (typeof onSuccess === "function") onSuccess();
-    },
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const errorMessage =
+    "No hemos podido procesar tu solicitud. Inténtalo de nuevo en unos segundos.";
 
-  const onSubmit = (data) => submit(data);
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    setIsError(false);
+    const res = await onLeadStart?.({
+      nombre: data.nombre,
+      telefono: data.telefono,
+      email: data.email,
+    });
+    setIsLoading(false);
+    if (res?.ok) {
+      reset();
+    } else {
+      setIsError(true);
+    }
+  };
 
   return (
     <motion.form

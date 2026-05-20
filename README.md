@@ -9,8 +9,29 @@ interesadas en la Ley de la Segunda Oportunidad.
 - **Tailwind CSS v3**
 - **Framer Motion** (animaciones)
 - **React Hook Form** + **Zod** (formulario y validación)
-- **EmailJS** (envío de leads al correo del cliente)
+- **Funciones serverless** (`/api`) en Vercel para el flujo de leads
+- **Upstash Redis** (almacena leads parciales) + **Upstash QStash** (disparo a 60 min)
+- **EmailJS** (envío de leads vía API REST server-side)
 - **Vercel** (deploy)
+
+---
+
+## Cómo funciona la captación de leads (importante)
+
+El formulario tiene 2 fases para reducir fricción:
+
+1. **Form base** (Nombre, Teléfono, Email) → al enviarlo:
+   - Se guarda el lead parcial en Redis.
+   - Se programa un "flush" a los **60 minutos** vía QStash.
+   - Se dispara la conversión de Google Ads.
+   - Se abre un **wizard** modal.
+2. **Wizard** (1 pregunta por pantalla): Deuda aproximada → Nº de acreedores →
+   Comunidad autónoma. Cada respuesta se guarda en Redis.
+
+**Envío del email:**
+- Si completa el wizard → email **COMPLETO** al instante.
+- Si abandona (cierra pestaña incluida) → a los 60 min se envía email
+  **PARCIAL** con lo respondido hasta ese momento. El lead nunca se pierde.
 
 ---
 
@@ -36,17 +57,57 @@ Comandos:
 ## 2. Variables de entorno
 
 Crea un archivo `.env` en la raíz (o configura las variables en Vercel) a
-partir de `.env.example`:
+partir de `.env.example`. Hay **dos grupos**:
 
+**Cliente (navegador)** — prefijo `VITE_`:
 ```env
-VITE_EMAILJS_SERVICE_ID=service_XXXXXXX
-VITE_EMAILJS_TEMPLATE_ID=template_XXXXXXX
-VITE_EMAILJS_PUBLIC_KEY=XXXXXXXXXXXXXXXX
 VITE_GTAG_CONVERSION_ID=AW-XXXXXXXXX/YYYYYYYYYYY
 ```
 
-> Las variables de entorno deben llevar el prefijo `VITE_` para que Vite las
-> exponga al cliente.
+**Servidor (funciones `/api`)** — SIN prefijo, nunca llegan al navegador:
+```env
+EMAILJS_SERVICE_ID=service_XXXXXXX
+EMAILJS_TEMPLATE_ID=template_XXXXXXX
+EMAILJS_PUBLIC_KEY=XXXXXXXXXXXXXXXX
+EMAILJS_PRIVATE_KEY=XXXXXXXXXXXXXXXX
+UPSTASH_REDIS_REST_URL=https://xxxxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=XXXXXXXXXXXXXXXX
+QSTASH_TOKEN=XXXXXXXXXXXXXXXX
+PUBLIC_BASE_URL=https://segundaoportunidad.lexnovas.es
+FLUSH_SECRET=cadena-larga-aleatoria
+```
+
+> Todas se configuran en **Vercel → Settings → Environment Variables**.
+> Las `VITE_` se exponen al navegador; el resto solo viven en el servidor.
+
+### Configurar Upstash (Redis + QStash) — 5 min
+
+1. Crea cuenta en [upstash.com](https://upstash.com) (gratis).
+2. **Redis → Create Database** → región Europa (ej. `eu-west-1`).
+   Copia **UPSTASH_REDIS_REST_URL** y **UPSTASH_REDIS_REST_TOKEN** (pestaña REST).
+3. **QStash** (en el menú lateral) → copia el **QSTASH_TOKEN**.
+4. Pega los 3 valores en las env vars de Vercel.
+
+### Activar EmailJS server-side
+
+1. EmailJS → **Account → General** → copia la **Private Key** (además de la Public).
+2. EmailJS → **Account → Security** → activa
+   **"Allow EmailJS API for non-browser applications"** (necesario para llamar
+   desde la función serverless).
+3. Pega `EMAILJS_PRIVATE_KEY` (y las demás `EMAILJS_*`) en Vercel.
+
+### Generar FLUSH_SECRET
+
+Cualquier cadena larga aleatoria. Por ejemplo, en terminal:
+```bash
+openssl rand -hex 24
+```
+Pégala en `FLUSH_SECRET`. Protege el endpoint `/api/lead/flush`.
+
+> ⚠️ **Desarrollo local:** `pnpm dev` (Vite) NO ejecuta las funciones `/api`.
+> En local el wizard se abre en "modo preview" pero no guarda ni envía. Para
+> probar el flujo completo en local usa `pnpm dlx vercel dev`, o pruébalo
+> directamente en el deploy de Vercel.
 
 ---
 
@@ -57,23 +118,36 @@ VITE_GTAG_CONVERSION_ID=AW-XXXXXXXXX/YYYYYYYYYYY
    Usa la cuenta `lexnovanewchance@gmail.com` (es la receptora de los leads).
    Copia el **Service ID** que se genere.
 3. **Email Templates** → *Create New Template*. Usa estas variables en el
-   contenido del email (el formulario las envía con estos nombres):
+   contenido del email (las funciones `/api` las envían con estos nombres):
 
+   - `{{estado}}` — COMPLETO ✅ o PARCIAL ⏱️
    - `{{from_name}}` — nombre del lead
    - `{{from_phone}}` — teléfono
    - `{{from_email}}` — email
+   - `{{deuda_aproximada}}` — rango de deuda
+   - `{{num_acreedores}}` — número de acreedores
+   - `{{comunidad}}` — comunidad autónoma
 
    Ejemplo de plantilla:
 
    ```
-   Asunto: Nuevo lead LexNova — {{from_name}}
+   Asunto: [{{estado}}] Nuevo lead LexNova — {{from_name}}
 
-   Has recibido una nueva solicitud desde la landing:
+   Has recibido una solicitud desde la landing.
 
-   Nombre:     {{from_name}}
-   Teléfono:   {{from_phone}}
-   Email:      {{from_email}}
+   Estado:         {{estado}}
+   ─────────────────────────────
+   Nombre:         {{from_name}}
+   Teléfono:       {{from_phone}}
+   Email:          {{from_email}}
+   Deuda aprox.:   {{deuda_aproximada}}
+   Nº acreedores:  {{num_acreedores}}
+   Comunidad:      {{comunidad}}
    ```
+
+   > Si el estado es PARCIAL, los campos no respondidos llegarán como
+   > "— sin responder". Eso significa que el usuario no terminó el wizard;
+   > aun así tienes su nombre, teléfono y email para contactarle.
 
    En **To Email** pon `lexnovanewchance@gmail.com`.
    Copia el **Template ID**.
