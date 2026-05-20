@@ -22,18 +22,17 @@ export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
 
-  // 1) El usuario envía el form base (Nombre, Tel, Email)
+  // 1) El usuario envía el form base (Nombre, Tel, Email).
+  //    La conversión y el wizard SOLO se activan si el backend confirma
+  //    que el lead se guardó. Si /api falla, no se cuenta conversión.
+  //    (Para probar el flujo completo en local usa `vercel dev`, no `vite`.)
   const handleLeadStart = async (baseData) => {
     const id = newLeadId();
     try {
       await startLead({ leadId: id, ...baseData });
     } catch (e) {
-      // En desarrollo no hay funciones /api: dejamos previsualizar el wizard.
-      if (!import.meta.env.DEV) {
-        console.error("No se pudo iniciar el lead:", e);
-        return { ok: false };
-      }
-      console.warn("API /api no disponible en dev; abriendo wizard en modo preview.", e);
+      console.error("No se pudo iniciar el lead:", e);
+      return { ok: false };
     }
 
     setLeadId(id);
