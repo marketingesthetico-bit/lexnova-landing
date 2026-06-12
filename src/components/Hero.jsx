@@ -71,18 +71,15 @@ export default function Hero({ onLeadStart }) {
         dur={16}
         opacity={1}
       />
-      {/* Estos dos pueden quedar detrás de Sergio en móvil/intermedias y
-          crear un halo verde alrededor de su silueta → solo se muestran en
-          pantallas anchas (≥1440px), donde Sergio flota a la derecha. */}
       <FloatingBlob
-        className="hidden min-[1440px]:block w-[320px] h-[320px] top-[42%] -right-28"
+        className="w-[320px] h-[320px] top-[42%] -right-28"
         color="#5BA478"
         delay={1.5}
         dur={18}
         opacity={1}
       />
       <FloatingBlob
-        className="hidden min-[1440px]:block w-[200px] h-[200px] bottom-16 left-[40%]"
+        className="w-[200px] h-[200px] bottom-16 left-[40%]"
         color="#3D7A56"
         delay={3}
         dur={20}
@@ -157,8 +154,8 @@ export default function Hero({ onLeadStart }) {
             className="relative"
           >
             {/* Sergio INTEGRADO al lado del texto, detrás. Visible < 1440px.
-                En móvil/tablet su base baja detrás de la card del formulario;
-                en pantallas intermedias un blob verde le cubre la base. */}
+                Sin sombra ni efectos. En móvil/tablet su base baja detrás de
+                la card del formulario; en intermedio (lg) se desvanece abajo. */}
             <motion.div
               variants={fadeUp}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
@@ -169,14 +166,8 @@ export default function Hero({ onLeadStart }) {
                 <img
                   src="/imagenes/sergio-lexnova-sm.webp"
                   alt="Sergio, especialista de LexNova en Ley de Segunda Oportunidad"
-                  className="relative w-full h-auto object-contain drop-shadow-[0_18px_35px_rgba(15,36,51,0.20)]"
+                  className="relative w-full h-auto object-contain lg:[-webkit-mask-image:linear-gradient(to_top,transparent_1%,#000_15%)] lg:[mask-image:linear-gradient(to_top,transparent_1%,#000_15%)]"
                   draggable="false"
-                  style={{
-                    WebkitMaskImage:
-                      "linear-gradient(to top, transparent 1%, #000 15%)",
-                    maskImage:
-                      "linear-gradient(to top, transparent 1%, #000 15%)",
-                  }}
                 />
               </picture>
             </motion.div>
