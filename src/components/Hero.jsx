@@ -63,27 +63,27 @@ export default function Hero({ onLeadStart }) {
         }}
       />
 
-      {/* Blobs orgánicos flotando (atmósfera suave de fondo) */}
+      {/* Blobs orgánicos flotando (verde sólido de marca) */}
       <FloatingBlob
         className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-24 sm:-top-40 -left-28 sm:-left-32"
         color="#5BA478"
         delay={0}
         dur={16}
-        opacity={0.16}
+        opacity={1}
       />
       <FloatingBlob
         className="w-[320px] h-[320px] top-[42%] -right-28"
         color="#5BA478"
         delay={1.5}
         dur={18}
-        opacity={0.1}
+        opacity={1}
       />
       <FloatingBlob
         className="w-[200px] h-[200px] bottom-16 left-[40%]"
         color="#3D7A56"
         delay={3}
         dur={20}
-        opacity={0.07}
+        opacity={1}
       />
 
       {/* Dots constelación sutil */}
