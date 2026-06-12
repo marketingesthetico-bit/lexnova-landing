@@ -93,6 +93,39 @@ export default function Hero({ onLeadStart }) {
         }}
       />
 
+      {/* Sergio — recorte sobre el fondo, detrás de la card del formulario.
+          Anclado a la derecha de una zona centrada (max 1800px) para que no
+          se aleje en pantallas ultra-anchas. Solo a partir de 1440px: por
+          debajo no hay margen a la derecha del formulario y quedaría tapado. */}
+      <div
+        aria-hidden="true"
+        className="hidden min-[1440px]:block absolute inset-0 pointer-events-none overflow-hidden"
+      >
+        <div className="relative h-full max-w-[1800px] mx-auto">
+          <motion.div
+            className="absolute bottom-0 right-0 h-[82%] max-h-[680px] flex items-end drop-shadow-[0_25px_45px_rgba(15,36,51,0.22)]"
+            initial={{ opacity: 0, x: 50, y: 10 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
+          >
+            {/* El PNG (~1 MB) solo se descarga a partir de 1440px. En móvil
+                cae al placeholder transparente y no consume datos. */}
+            <picture>
+              <source
+                media="(min-width: 1440px)"
+                srcSet="/imagenes/sergio-lexnova.png"
+              />
+              <img
+                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                alt=""
+                className="h-full w-auto object-contain object-bottom select-none"
+                draggable="false"
+              />
+            </picture>
+          </motion.div>
+        </div>
+      </div>
+
       <div className="container-narrow relative">
         {/* Logo en pill frosted — siempre legible sobre cualquier fondo */}
         <motion.div
