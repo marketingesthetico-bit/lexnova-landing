@@ -144,16 +144,18 @@ export default function Hero({ onLeadStart }) {
             variants={{ show: { transition: { staggerChildren: 0.1 } } }}
             className="relative"
           >
-            {/* Sergio INTEGRADO al lado del texto, detrás. Visible < 1440px. */}
+            {/* Sergio INTEGRADO al lado del texto, detrás. Visible < 1440px.
+                En móvil/tablet su base baja detrás de la card del formulario;
+                en pantallas intermedias un blob verde le cubre la base. */}
             <motion.div
               variants={fadeUp}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-              className="pointer-events-none absolute z-0 bottom-0 -right-1 sm:right-0 w-[150px] sm:w-[215px] lg:w-[175px] min-[1440px]:hidden"
+              className="pointer-events-none absolute z-0 -bottom-10 sm:-bottom-12 lg:bottom-0 -right-1 sm:right-0 w-[195px] sm:w-[265px] lg:w-[215px] min-[1440px]:hidden"
             >
-              {/* Halo verde detrás de Sergio */}
+              {/* Halo verde detrás de Sergio (grounding suave) */}
               <div
                 aria-hidden="true"
-                className="absolute inset-x-2 bottom-0 top-6 rounded-full bg-brand/10 blur-xl"
+                className="absolute inset-x-2 bottom-8 top-6 rounded-full bg-brand/10 blur-xl"
               />
               <picture>
                 <source media="(min-width: 1440px)" srcSet={BLANK} />
@@ -162,6 +164,12 @@ export default function Hero({ onLeadStart }) {
                   alt="Sergio, especialista de LexNova en Ley de Segunda Oportunidad"
                   className="relative w-full h-auto object-contain drop-shadow-[0_18px_35px_rgba(15,36,51,0.20)]"
                   draggable="false"
+                  style={{
+                    WebkitMaskImage:
+                      "linear-gradient(to top, transparent 1%, #000 15%)",
+                    maskImage:
+                      "linear-gradient(to top, transparent 1%, #000 15%)",
+                  }}
                 />
               </picture>
             </motion.div>
