@@ -17,14 +17,20 @@ const BLANK =
 /**
  * Blob orgánico decorativo, animado con Framer Motion.
  */
-function FloatingBlob({ className = "", color = "#5BA478", delay = 0, dur = 14 }) {
+function FloatingBlob({
+  className = "",
+  color = "#5BA478",
+  delay = 0,
+  dur = 14,
+  opacity = 0.12,
+}) {
   return (
     <motion.svg
       aria-hidden="true"
       viewBox="0 0 200 200"
       className={`absolute pointer-events-none ${className}`}
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1, y: [0, -18, 0], rotate: [0, 6, 0] }}
+      animate={{ opacity, y: [0, -18, 0], rotate: [0, 6, 0] }}
       transition={{
         opacity: { duration: 1.2, delay },
         y: { duration: dur, repeat: Infinity, ease: "easeInOut", delay },
@@ -57,24 +63,27 @@ export default function Hero({ onLeadStart }) {
         }}
       />
 
-      {/* Blobs orgánicos flotando */}
+      {/* Blobs orgánicos flotando (atmósfera suave de fondo) */}
       <FloatingBlob
-        className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-24 sm:-top-40 -left-28 sm:-left-32 opacity-[0.14]"
+        className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-24 sm:-top-40 -left-28 sm:-left-32"
         color="#5BA478"
         delay={0}
         dur={16}
+        opacity={0.16}
       />
       <FloatingBlob
-        className="w-[320px] h-[320px] top-[42%] -right-28 opacity-[0.12]"
+        className="w-[320px] h-[320px] top-[42%] -right-28"
         color="#5BA478"
         delay={1.5}
         dur={18}
+        opacity={0.1}
       />
       <FloatingBlob
-        className="w-[200px] h-[200px] bottom-16 left-[40%] opacity-[0.09]"
+        className="w-[200px] h-[200px] bottom-16 left-[40%]"
         color="#3D7A56"
         delay={3}
         dur={20}
+        opacity={0.07}
       />
 
       {/* Dots constelación sutil */}
@@ -152,11 +161,6 @@ export default function Hero({ onLeadStart }) {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
               className="pointer-events-none absolute z-0 -bottom-10 sm:-bottom-12 lg:bottom-0 -right-1 sm:right-0 w-[195px] sm:w-[265px] lg:w-[215px] min-[1440px]:hidden"
             >
-              {/* Halo verde detrás de Sergio (grounding suave) */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-2 bottom-8 top-6 rounded-full bg-brand/10 blur-xl"
-              />
               <picture>
                 <source media="(min-width: 1440px)" srcSet={BLANK} />
                 <img
