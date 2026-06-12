@@ -86,20 +86,20 @@ export default function LeadWizard({
 
   const handleButtonSelect = (value) => {
     setAnswers((a) => ({ ...a, [current.key]: value }));
-
-    // Descalificación inmediata: deuda demasiado baja → página de exclusión.
-    if (current.key === "deuda" && value === DEUDA_EXCLUIDA) {
-      setTimeout(() => onExcluded("deuda"), 180);
-      return;
-    }
-
+    // El usuario siempre completa el formulario; la descalificación se evalúa
+    // al final (en handleFinish), no al marcar la respuesta.
     setTimeout(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 180);
   };
 
   const handleFinish = async () => {
     if (!answers.comunidad) return;
 
-    // Descalificación por zona: no reside en Cataluña → página de exclusión.
+    // Descalificación SOLO al finalizar: si ha dado al menos una respuesta que
+    // no interesa (deuda < 15.000€ o residir fuera de Cataluña) → exclusión.
+    if (answers.deuda === DEUDA_EXCLUIDA) {
+      onExcluded("deuda");
+      return;
+    }
     if (answers.comunidad !== COMUNIDAD_VALIDA) {
       onExcluded("zona");
       return;
@@ -114,7 +114,7 @@ export default function LeadWizard({
       onComplete();
     } else if (res?.ok && !res.qualified) {
       // Salvaguarda: el backend lo marcó no apto.
-      onExcluded("zona");
+      onExcluded(answers.deuda === DEUDA_EXCLUIDA ? "deuda" : "zona");
     } else {
       setError(true); // fallo de red/servidor → permitir reintento
     }
