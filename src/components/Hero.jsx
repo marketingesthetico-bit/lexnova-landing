@@ -9,9 +9,13 @@ const fadeUp = {
   show: { opacity: 1, y: 0 },
 };
 
+// GIF transparente 1x1: evita descargar la imagen pesada en el breakpoint
+// donde esa instancia de Sergio está oculta.
+const BLANK =
+  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+
 /**
  * Blob orgánico decorativo, animado con Framer Motion.
- * Posición y tamaño se controlan con clase Tailwind desde fuera.
  */
 function FloatingBlob({ className = "", color = "#5BA478", delay = 0, dur = 14 }) {
   return (
@@ -20,11 +24,7 @@ function FloatingBlob({ className = "", color = "#5BA478", delay = 0, dur = 14 }
       viewBox="0 0 200 200"
       className={`absolute pointer-events-none ${className}`}
       initial={{ opacity: 0 }}
-      animate={{
-        opacity: 1,
-        y: [0, -18, 0],
-        rotate: [0, 6, 0],
-      }}
+      animate={{ opacity: 1, y: [0, -18, 0], rotate: [0, 6, 0] }}
       transition={{
         opacity: { duration: 1.2, delay },
         y: { duration: dur, repeat: Infinity, ease: "easeInOut", delay },
@@ -57,8 +57,7 @@ export default function Hero({ onLeadStart }) {
         }}
       />
 
-      {/* Blob superior — detrás del logo (el pill frosted garantiza
-          su legibilidad). Posicionado para NO invadir la zona del H1. */}
+      {/* Blobs orgánicos flotando */}
       <FloatingBlob
         className="w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] -top-24 sm:-top-40 -left-28 sm:-left-32 opacity-[0.14]"
         color="#5BA478"
@@ -93,10 +92,8 @@ export default function Hero({ onLeadStart }) {
         }}
       />
 
-      {/* Sergio — recorte sobre el fondo, detrás de la card del formulario.
-          Anclado a la derecha de una zona centrada (max 1800px) para que no
-          se aleje en pantallas ultra-anchas. Solo a partir de 1440px: por
-          debajo no hay margen a la derecha del formulario y quedaría tapado. */}
+      {/* Sergio FLOTANTE — solo en pantallas anchas (≥1440px), detrás de la
+          card del formulario, usando el margen derecho disponible. */}
       <div
         aria-hidden="true"
         className="hidden min-[1440px]:block absolute inset-0 pointer-events-none overflow-hidden"
@@ -108,15 +105,14 @@ export default function Hero({ onLeadStart }) {
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
           >
-            {/* El PNG (~1 MB) solo se descarga a partir de 1440px. En móvil
-                cae al placeholder transparente y no consume datos. */}
             <picture>
               <source
                 media="(min-width: 1440px)"
-                srcSet="/imagenes/sergio-lexnova.png"
+                type="image/webp"
+                srcSet="/imagenes/sergio-lexnova.webp"
               />
               <img
-                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                src={BLANK}
                 alt=""
                 className="h-full w-auto object-contain object-bottom select-none"
                 draggable="false"
@@ -127,7 +123,7 @@ export default function Hero({ onLeadStart }) {
       </div>
 
       <div className="container-narrow relative">
-        {/* Logo en pill frosted — siempre legible sobre cualquier fondo */}
+        {/* Logo en pill frosted */}
         <motion.div
           className="pt-6 sm:pt-8"
           initial={{ opacity: 0, y: -10 }}
@@ -141,16 +137,39 @@ export default function Hero({ onLeadStart }) {
 
         {/* Hero grid */}
         <div className="grid lg:grid-cols-[1fr_1fr] gap-10 lg:gap-14 items-center pt-12 sm:pt-16 pb-20 sm:pb-24">
-          {/* Copy */}
+          {/* Copy (con Sergio integrado al lado, en pantallas < 1440px) */}
           <motion.div
             initial="hidden"
             animate="show"
             variants={{ show: { transition: { staggerChildren: 0.1 } } }}
+            className="relative"
           >
+            {/* Sergio INTEGRADO al lado del texto, detrás. Visible < 1440px. */}
+            <motion.div
+              variants={fadeUp}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+              className="pointer-events-none absolute z-0 bottom-0 -right-1 sm:right-0 w-[150px] sm:w-[215px] lg:w-[175px] min-[1440px]:hidden"
+            >
+              {/* Halo verde detrás de Sergio */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-x-2 bottom-0 top-6 rounded-full bg-brand/10 blur-xl"
+              />
+              <picture>
+                <source media="(min-width: 1440px)" srcSet={BLANK} />
+                <img
+                  src="/imagenes/sergio-lexnova-sm.webp"
+                  alt="Sergio, especialista de LexNova en Ley de Segunda Oportunidad"
+                  className="relative w-full h-auto object-contain drop-shadow-[0_18px_35px_rgba(15,36,51,0.20)]"
+                  draggable="false"
+                />
+              </picture>
+            </motion.div>
+
             <motion.span
               variants={fadeUp}
               transition={{ duration: 0.55, ease: "easeOut" }}
-              className="inline-flex items-center gap-2 bg-white border border-brand/25 shadow-soft text-brand-dark text-xs sm:text-sm font-semibold px-3.5 py-1.5 rounded-full"
+              className="relative inline-flex items-center gap-2 bg-white border border-brand/25 shadow-soft text-brand-dark text-xs sm:text-sm font-semibold px-3.5 py-1.5 rounded-full"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-60" />
@@ -162,7 +181,7 @@ export default function Hero({ onLeadStart }) {
             <motion.h1
               variants={fadeUp}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="font-display font-bold text-navy text-[2.7rem] leading-[1.02] sm:text-[3.4rem] lg:text-[4rem] mt-5 text-balance"
+              className="relative font-display font-bold text-navy text-[2.5rem] leading-[1.03] sm:text-[3.2rem] lg:text-[4rem] mt-5 text-balance"
             >
               Cancela tus deudas.
               <br />
@@ -172,7 +191,7 @@ export default function Hero({ onLeadStart }) {
             <motion.p
               variants={fadeUp}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="text-muted text-lg sm:text-[19px] leading-relaxed mt-5 max-w-md"
+              className="relative text-muted text-lg sm:text-[19px] leading-relaxed mt-5 max-w-md pr-[160px] sm:pr-[235px] lg:pr-[195px] min-[1440px]:pr-0"
             >
               Te decimos en 24h si la Ley de Segunda Oportunidad puede
               ayudarte. Sin compromiso.
@@ -181,7 +200,7 @@ export default function Hero({ onLeadStart }) {
             <motion.ul
               variants={fadeUp}
               transition={{ duration: 0.55, ease: "easeOut" }}
-              className="mt-7 flex flex-wrap gap-2.5"
+              className="relative mt-7 flex flex-wrap gap-2.5 pr-[150px] sm:pr-[235px] lg:pr-[195px] min-[1440px]:pr-0"
             >
               {pills.map((p) => (
                 <li
