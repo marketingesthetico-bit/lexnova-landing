@@ -20,18 +20,28 @@ interesadas en la Ley de la Segunda Oportunidad.
 
 El formulario tiene 2 fases para reducir fricción:
 
-1. **Form base** (Nombre, Teléfono, Email) → al enviarlo:
-   - Se guarda el lead parcial en Redis.
-   - Se programa un "flush" a los **60 minutos** vía QStash.
-   - Se dispara la conversión de Google Ads.
-   - Se abre un **wizard** modal.
+1. **Form base** (Nombre, Teléfono, Email) → al enviarlo se abre un **wizard**
+   modal. (Todavía NO se envía nada ni se cuenta conversión.)
 2. **Wizard** (1 pregunta por pantalla): Deuda aproximada → Nº de acreedores →
-   Comunidad autónoma. Cada respuesta se guarda en Redis.
+   Comunidad autónoma.
 
-**Envío del email:**
-- Si completa el wizard → email **COMPLETO** al instante.
-- Si abandona (cierra pestaña incluida) → a los 60 min se envía email
-  **PARCIAL** con lo respondido hasta ese momento. El lead nunca se pierde.
+**Cualificación — solo se envía email y se cuenta conversión de Google Ads
+cuando el lead COMPLETA el formulario Y cualifica:**
+
+| Condición | Resultado |
+|---|---|
+| Deuda = **"Menos de 15.000€"** | ❌ No apto → página de exclusión. Sin email ni conversión. |
+| Comunidad ≠ **Cataluña** | ❌ No apto → página de exclusión. Sin email ni conversión. |
+| Completa + deuda ≥ 15.000€ + Cataluña | ✅ Apto → email con sus datos + conversión + modal de éxito. |
+| Abandona el wizard | Nada: ni email ni conversión. |
+
+Las reglas viven en **dos sitios que deben coincidir**: el frontend
+([LeadWizard.jsx](src/components/LeadWizard.jsx)) y el backend
+([api/lead/submit.js](api/lead/submit.js)). Si cambias un umbral o la comunidad
+válida, edítalo en ambos.
+
+> Arquitectura: un único endpoint `/api/lead/submit` valida y envía el email.
+> No usa base de datos ni colas (se eliminó el flujo de leads parciales).
 
 ---
 
@@ -64,29 +74,20 @@ partir de `.env.example`. Hay **dos grupos**:
 VITE_GTAG_CONVERSION_ID=AW-XXXXXXXXX/YYYYYYYYYYY
 ```
 
-**Servidor (funciones `/api`)** — SIN prefijo, nunca llegan al navegador:
+**Servidor (función `/api/lead/submit`)** — SIN prefijo, nunca llegan al navegador:
 ```env
 EMAILJS_SERVICE_ID=service_XXXXXXX
 EMAILJS_TEMPLATE_ID=template_XXXXXXX
 EMAILJS_PUBLIC_KEY=XXXXXXXXXXXXXXXX
 EMAILJS_PRIVATE_KEY=XXXXXXXXXXXXXXXX
-UPSTASH_REDIS_REST_URL=https://xxxxx.upstash.io
-UPSTASH_REDIS_REST_TOKEN=XXXXXXXXXXXXXXXX
-QSTASH_TOKEN=XXXXXXXXXXXXXXXX
-PUBLIC_BASE_URL=https://segundaoportunidad.lexnovas.com
-FLUSH_SECRET=cadena-larga-aleatoria
 ```
 
 > Todas se configuran en **Vercel → Settings → Environment Variables**.
 > Las `VITE_` se exponen al navegador; el resto solo viven en el servidor.
-
-### Configurar Upstash (Redis + QStash) — 5 min
-
-1. Crea cuenta en [upstash.com](https://upstash.com) (gratis).
-2. **Redis → Create Database** → región Europa (ej. `eu-west-1`).
-   Copia **UPSTASH_REDIS_REST_URL** y **UPSTASH_REDIS_REST_TOKEN** (pestaña REST).
-3. **QStash** (en el menú lateral) → copia el **QSTASH_TOKEN**.
-4. Pega los 3 valores en las env vars de Vercel.
+>
+> ℹ️ Ya **no** se usan Upstash (Redis), QStash, `PUBLIC_BASE_URL` ni
+> `FLUSH_SECRET` (eran del antiguo flujo de leads parciales, ya eliminado).
+> Puedes borrar esas variables de Vercel sin problema.
 
 ### Activar EmailJS server-side
 
@@ -96,18 +97,12 @@ FLUSH_SECRET=cadena-larga-aleatoria
    desde la función serverless).
 3. Pega `EMAILJS_PRIVATE_KEY` (y las demás `EMAILJS_*`) en Vercel.
 
-### Generar FLUSH_SECRET
-
-Cualquier cadena larga aleatoria. Por ejemplo, en terminal:
-```bash
-openssl rand -hex 24
-```
-Pégala en `FLUSH_SECRET`. Protege el endpoint `/api/lead/flush`.
-
 > ⚠️ **Desarrollo local:** `pnpm dev` (Vite) NO ejecuta las funciones `/api`.
-> En local el wizard se abre en "modo preview" pero no guarda ni envía. Para
-> probar el flujo completo en local usa `pnpm dlx vercel dev`, o pruébalo
-> directamente en el deploy de Vercel.
+> En local el wizard se abre y puedes recorrerlo; al finalizar un lead apto, el
+> envío fallará (no hay `/api`) y verás un aviso de reintento. Las páginas de
+> exclusión (deuda baja / fuera de Cataluña) sí funcionan en local porque no
+> llaman al backend. Para probar el envío real usa `pnpm dlx vercel dev` o el
+> deploy de Vercel.
 
 ---
 
@@ -120,22 +115,21 @@ Pégala en `FLUSH_SECRET`. Protege el endpoint `/api/lead/flush`.
 3. **Email Templates** → *Create New Template*. Usa estas variables en el
    contenido del email (las funciones `/api` las envían con estos nombres):
 
-   - `{{estado}}` — COMPLETO ✅ o PARCIAL ⏱️
+   - `{{estado}}` — siempre `COMPLETO ✅` (solo llegan leads aptos y completos)
    - `{{from_name}}` — nombre del lead
    - `{{from_phone}}` — teléfono
    - `{{from_email}}` — email
    - `{{deuda_aproximada}}` — rango de deuda
    - `{{num_acreedores}}` — número de acreedores
-   - `{{comunidad}}` — comunidad autónoma
+   - `{{comunidad}}` — comunidad autónoma (siempre Cataluña)
 
    Ejemplo de plantilla:
 
    ```
-   Asunto: [{{estado}}] Nuevo lead LexNova — {{from_name}}
+   Asunto: Nuevo lead LexNova — {{from_name}} ({{comunidad}})
 
    Has recibido una solicitud desde la landing.
 
-   Estado:         {{estado}}
    ─────────────────────────────
    Nombre:         {{from_name}}
    Teléfono:       {{from_phone}}
@@ -145,9 +139,9 @@ Pégala en `FLUSH_SECRET`. Protege el endpoint `/api/lead/flush`.
    Comunidad:      {{comunidad}}
    ```
 
-   > Si el estado es PARCIAL, los campos no respondidos llegarán como
-   > "— sin responder". Eso significa que el usuario no terminó el wizard;
-   > aun así tienes su nombre, teléfono y email para contactarle.
+   > Solo recibirás emails de leads **aptos y completos** (deuda ≥ 15.000€ y
+   > residentes en Cataluña). Los demás se derivan a una página de exclusión y
+   > no generan email ni conversión.
 
    En **To Email** pon `lexnovanewchance@gmail.com`.
    Copia el **Template ID**.

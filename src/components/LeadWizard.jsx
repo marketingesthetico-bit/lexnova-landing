@@ -1,6 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { updateLead, completeLead } from "../hooks/useLeadFlow";
+
+// Reglas de cualificación (deben coincidir EXACTAMENTE con el backend).
+const DEUDA_EXCLUIDA = "Menos de 15.000€";
+const COMUNIDAD_VALIDA = "Cataluña";
 
 const COMUNIDADES = [
   "Andalucía",
@@ -31,8 +34,8 @@ const STEPS = [
     ayuda: "Una estimación nos basta para preparar tu consulta.",
     tipo: "botones",
     opciones: [
-      "Menos de 10.000€",
-      "10.000€ - 30.000€",
+      "Menos de 15.000€",
+      "15.000€ - 30.000€",
       "30.000€ - 60.000€",
       "Más de 60.000€",
     ],
@@ -53,7 +56,14 @@ const STEPS = [
   },
 ];
 
-export default function LeadWizard({ open, leadId, onComplete, onClose }) {
+export default function LeadWizard({
+  open,
+  base,
+  onSubmit,
+  onComplete,
+  onExcluded,
+  onClose,
+}) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({
     deuda: "",
@@ -61,13 +71,12 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
     comunidad: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
 
   const current = STEPS[step];
-  const isLast = step === STEPS.length - 1;
   const progress = ((step + 1) / STEPS.length) * 100;
 
-  // Confirmación antes de cerrar (evita abandono accidental)
   const requestClose = () => setConfirmClose(true);
   const handleStay = () => setConfirmClose(false);
   const handleLeave = () => {
@@ -75,28 +84,39 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
     onClose();
   };
 
-  const saveAnswer = (key, value) => {
-    setAnswers((a) => ({ ...a, [key]: value }));
-    if (leadId) updateLead(leadId, key, value).catch(() => {});
-  };
-
   const handleButtonSelect = (value) => {
-    saveAnswer(current.key, value);
-    // pequeño delay para feedback visual antes de avanzar
+    setAnswers((a) => ({ ...a, [current.key]: value }));
+
+    // Descalificación inmediata: deuda demasiado baja → página de exclusión.
+    if (current.key === "deuda" && value === DEUDA_EXCLUIDA) {
+      setTimeout(() => onExcluded("deuda"), 180);
+      return;
+    }
+
     setTimeout(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 180);
   };
 
   const handleFinish = async () => {
     if (!answers.comunidad) return;
+
+    // Descalificación por zona: no reside en Cataluña → página de exclusión.
+    if (answers.comunidad !== COMUNIDAD_VALIDA) {
+      onExcluded("zona");
+      return;
+    }
+
     setSubmitting(true);
-    try {
-      if (leadId) {
-        await updateLead(leadId, "comunidad", answers.comunidad).catch(() => {});
-        await completeLead(leadId).catch(() => {});
-      }
-    } finally {
-      setSubmitting(false);
+    setError(false);
+    const res = await onSubmit({ ...base, ...answers });
+    setSubmitting(false);
+
+    if (res?.ok && res.qualified) {
       onComplete();
+    } else if (res?.ok && !res.qualified) {
+      // Salvaguarda: el backend lo marcó no apto.
+      onExcluded("zona");
+    } else {
+      setError(true); // fallo de red/servidor → permitir reintento
     }
   };
 
@@ -200,7 +220,9 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
                   <div>
                     <select
                       value={answers.comunidad}
-                      onChange={(e) => saveAnswer("comunidad", e.target.value)}
+                      onChange={(e) =>
+                        setAnswers((a) => ({ ...a, comunidad: e.target.value }))
+                      }
                       className="form-select !text-navy !bg-white !border-gray-200"
                     >
                       <option value="" disabled>
@@ -221,6 +243,13 @@ export default function LeadWizard({ open, leadId, onComplete, onClose }) {
                     >
                       {submitting ? "Enviando…" : "Finalizar y enviar →"}
                     </button>
+
+                    {error && (
+                      <p className="text-red-600 text-sm text-center mt-3">
+                        No se pudo enviar tu solicitud. Comprueba tu conexión e
+                        inténtalo de nuevo.
+                      </p>
+                    )}
                   </div>
                 )}
               </motion.div>

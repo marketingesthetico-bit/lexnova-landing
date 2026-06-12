@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Hero from "./components/Hero";
 import TrustBar from "./components/TrustBar";
 import NoEstasSolo from "./components/NoEstasSolo";
@@ -13,46 +13,79 @@ import SecondCTA from "./components/SecondCTA";
 import Footer from "./components/Footer";
 import ConversionModal from "./components/ConversionModal";
 import LeadWizard from "./components/LeadWizard";
+import ExclusionPage from "./components/ExclusionPage";
 import StickyCTA from "./components/StickyCTA";
-import { newLeadId, startLead } from "./hooks/useLeadFlow";
+import { submitLead } from "./hooks/useLeadFlow";
 import { fireLeadEvent } from "./utils/gtag";
 
 export default function App() {
-  const [leadId, setLeadId] = useState(null);
+  const [leadBase, setLeadBase] = useState(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [excluded, setExcluded] = useState(null); // null | "deuda" | "zona"
 
-  // 1) El usuario envía el form base (Nombre, Tel, Email).
-  //    La conversión y el wizard SOLO se activan si el backend confirma
-  //    que el lead se guardó. Si /api falla, no se cuenta conversión.
-  //    (Para probar el flujo completo en local usa `vercel dev`, no `vite`.)
+  // Si el usuario pulsa "atrás" del navegador estando en la página de
+  // exclusión, volvemos a la landing.
+  useEffect(() => {
+    const onPop = () => setExcluded(null);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // 1) Envío del form base (Nombre, Tel, Email): solo abre el wizard.
+  //    NO se dispara conversión ni se envía nada todavía.
   const handleLeadStart = async (baseData) => {
-    const id = newLeadId();
-    try {
-      await startLead({ leadId: id, ...baseData });
-    } catch (e) {
-      console.error("No se pudo iniciar el lead:", e);
-      return { ok: false };
-    }
-
-    setLeadId(id);
-    fireLeadEvent(); // conversión Google Ads en cuanto hay datos de contacto
+    setLeadBase(baseData);
     setWizardOpen(true);
     return { ok: true };
   };
 
-  // 2a) El usuario completa el wizard
-  const handleWizardComplete = () => {
+  // 2) Envío del lead completo desde el wizard (solo si NO está descalificado
+  //    por zona). El backend valida y envía email solo si cualifica.
+  //    La conversión de Google Ads se dispara SOLO si cualifica.
+  const handleQualifiedSubmit = async (fullData) => {
+    const res = await submitLead(fullData);
+    if (res?.ok && res.qualified) {
+      fireLeadEvent();
+    }
+    return res;
+  };
+
+  // 3a) Lead cualificado y enviado → modal de éxito.
+  const handleComplete = () => {
     setWizardOpen(false);
     setSuccessOpen(true);
   };
 
-  // 2b) El usuario confirma que cierra el wizard sin terminar.
-  //     NO mostramos el modal de éxito (no completó). Sus datos de contacto
-  //     ya están guardados y el backend enviará el parcial a los 60 min.
-  const handleWizardClose = () => {
+  // 3b) Lead descalificado (deuda baja o fuera de Cataluña) → página de
+  //     exclusión. Sin conversión ni email.
+  const handleExcluded = (reason) => {
     setWizardOpen(false);
+    setExcluded(reason);
+    try {
+      window.history.pushState({ excluded: true }, "", "/no-disponible");
+    } catch {
+      /* no-op */
+    }
   };
+
+  const handleBackFromExclusion = () => {
+    setExcluded(null);
+    try {
+      window.history.pushState({}, "", "/");
+    } catch {
+      /* no-op */
+    }
+  };
+
+  // 3c) Cierre del wizard sin terminar: no se envía nada ni cuenta conversión.
+  const handleWizardClose = () => setWizardOpen(false);
+
+  if (excluded) {
+    return (
+      <ExclusionPage reason={excluded} onBack={handleBackFromExclusion} />
+    );
+  }
 
   return (
     <div id="top">
@@ -71,8 +104,10 @@ export default function App() {
 
       <LeadWizard
         open={wizardOpen}
-        leadId={leadId}
-        onComplete={handleWizardComplete}
+        base={leadBase}
+        onSubmit={handleQualifiedSubmit}
+        onComplete={handleComplete}
+        onExcluded={handleExcluded}
         onClose={handleWizardClose}
       />
       <ConversionModal open={successOpen} onClose={() => setSuccessOpen(false)} />
